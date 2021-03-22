@@ -1845,6 +1845,9 @@ LZ4_decompress_generic(
             match = op - offset;
             assert(match <= op);
 
+            /* check underflow */
+            if (unlikely(match < dst)) { goto _output_error; }
+
             /* get matchlength */
             length = token & ML_MASK;
 
@@ -1954,6 +1957,9 @@ LZ4_decompress_generic(
                 offset = LZ4_readLE16(ip); ip += 2;
                 match = op - offset;
                 assert(match <= op); /* check overflow */
+
+                /* check underflow*/
+                if (unlikely(match < dst)) { goto _output_error; }
 
                 /* Do not deal with overlapping matches. */
                 if ( (length != ML_MASK)
