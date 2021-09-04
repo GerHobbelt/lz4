@@ -69,6 +69,9 @@
 #include <inttypes.h> /* for PRIu64 */
 #include <time.h>     /* for clock_gettime() */
 #include <locale.h>   /* for setlocale() */
+#if defined(_WIN32)
+#include <windows.h>
+#endif
 
 /* We need to know what one billion is for clock timing. */
 #define BILLION 1000000000L
@@ -86,7 +89,7 @@
 /*
  * Easy show-error-and-bail function.
  */
-void run_screaming(const char *message, const int code) {
+static void run_screaming(const char *message, const int code) {
   printf("%s\n", message);
   exit(code);
 }
@@ -95,18 +98,41 @@ void run_screaming(const char *message, const int code) {
 /*
  * Centralize the usage function to keep main cleaner.
  */
-void usage(const char *message) {
+static void usage(const char *message) {
   printf("Usage: ./argPerformanceTesting <iterations>\n");
   run_screaming(message, 1);
-  return;
 }
+
+
+#if defined(_WIN32)
+
+#ifndef CLOCK_MONOTONIC
+#define CLOCK_MONOTONIC 1
+#endif
+
+static LARGE_INTEGER tick_frequency = { 0 };
+
+static void clock_gettime(int dummy, struct timespec* now) {
+	if (!tick_frequency.QuadPart)
+	{
+		QueryPerformanceFrequency(&tick_frequency);
+	}
+
+	LARGE_INTEGER count;
+	QueryPerformanceCounter(&count);
+
+	now->tv_sec = (time_t)(count.QuadPart / tick_frequency.QuadPart);
+	now->tv_nsec = (int)((count.QuadPart % tick_frequency.QuadPart) * BILLION / tick_frequency.QuadPart);
+}
+
+#endif
 
 
 
 /*
  * Runs the benchmark for LZ4_compress_* based on function_id.
  */
-uint64_t bench(
+static uint64_t bench(
     const char *known_good_dst,
     const int function_id,
     const int iterations,
@@ -225,6 +251,11 @@ uint64_t bench(
 
 
 
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      lz4_compress_example_main(cnt, arr)
+#endif
+
 /*
  * main()
  * We will demonstrate the use of each function for simplicity sake.  Then we will run 2 suites of benchmarking:
@@ -233,7 +264,7 @@ uint64_t bench(
  * Test Suite B)  For the sake of testing, see what results we get if the data is drastically easier to compress.  IF there are
  *                indeed losses and IF more compressible data is faster to process, this will exacerbate the findings.
  */
-int main(int argc, char **argv) {
+int main(int argc, const char** argv) {
   // Get and verify options.  There's really only 1:  How many iterations to run.
   int iterations = 1000000;
   if (argc > 1)
