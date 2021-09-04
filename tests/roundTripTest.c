@@ -213,7 +213,7 @@ static void fileCheck(const char* fileName, int clevel)
 }
 
 
-int bad_usage(const char* exeName)
+static int bad_usage(const char* exeName)
 {
     MSG(" \n");
     MSG("bad usage: \n");
@@ -225,6 +225,12 @@ int bad_usage(const char* exeName)
     return 1;
 }
 
+
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      lz4_roundTrip_example_main(cnt, arr)
+#endif
 
 int main(int argCount, const char** argv)
 {

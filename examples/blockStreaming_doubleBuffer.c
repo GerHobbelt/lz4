@@ -19,24 +19,24 @@ enum {
 };
 
 
-size_t write_int(FILE* fp, int i) {
+static size_t write_int(FILE* fp, int i) {
     return fwrite(&i, sizeof(i), 1, fp);
 }
 
-size_t write_bin(FILE* fp, const void* array, size_t arrayBytes) {
+static size_t write_bin(FILE* fp, const void* array, size_t arrayBytes) {
     return fwrite(array, 1, arrayBytes, fp);
 }
 
-size_t read_int(FILE* fp, int* i) {
+static size_t read_int(FILE* fp, int* i) {
     return fread(i, sizeof(*i), 1, fp);
 }
 
-size_t read_bin(FILE* fp, void* array, size_t arrayBytes) {
+static size_t read_bin(FILE* fp, void* array, size_t arrayBytes) {
     return fread(array, 1, arrayBytes, fp);
 }
 
 
-void test_compress(FILE* outFp, FILE* inpFp)
+static void test_compress(FILE* outFp, FILE* inpFp)
 {
     LZ4_stream_t lz4Stream_body;
     LZ4_stream_t* lz4Stream = &lz4Stream_body;
@@ -71,7 +71,7 @@ void test_compress(FILE* outFp, FILE* inpFp)
 }
 
 
-void test_decompress(FILE* outFp, FILE* inpFp)
+static void test_decompress(FILE* outFp, FILE* inpFp)
 {
     LZ4_streamDecode_t lz4StreamDecode_body;
     LZ4_streamDecode_t* lz4StreamDecode = &lz4StreamDecode_body;
@@ -112,7 +112,7 @@ void test_decompress(FILE* outFp, FILE* inpFp)
 }
 
 
-int compare(FILE* fp0, FILE* fp1)
+static int compare(FILE* fp0, FILE* fp1)
 {
     int result = 0;
 
@@ -136,7 +136,13 @@ int compare(FILE* fp0, FILE* fp1)
 }
 
 
-int main(int argc, char* argv[])
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      lz4_blockStreaming_doubleBuffer_example_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     char inpFilename[256] = { 0 };
     char lz4Filename[256] = { 0 };

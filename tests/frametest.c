@@ -111,7 +111,7 @@ static clock_t FUZ_GetClockSpan(clock_t clockStart)
 
 
 #define FUZ_rotl32(x,r) ((x << r) | (x >> (32 - r)))
-unsigned int FUZ_rand(unsigned int* src)
+static unsigned int FUZ_rand(unsigned int* src)
 {
     U32 rand32 = *src;
     rand32 *= prime1;
@@ -169,7 +169,7 @@ static unsigned FUZ_highbit(U32 v32)
 #define CHECK_V(v,f) v = f; if (LZ4F_isError(v)) { fprintf(stderr, "%s \n", LZ4F_getErrorName(v)); goto _output_error; }
 #define CHECK(f)   { LZ4F_errorCode_t const CHECK_V(err_ , f); }
 
-int basicTests(U32 seed, double compressibility)
+static int basicTests(U32 seed, double compressibility)
 {
 #define COMPRESSIBLE_NOISE_LENGTH (2 MB)
     void* const CNBuffer = malloc(COMPRESSIBLE_NOISE_LENGTH);
@@ -810,7 +810,7 @@ static void locateBuffDiff(const void* buff1, const void* buff2, size_t size, o_
 #   define CHECK(cond, ...) { if (cond) { EXIT_MSG(__VA_ARGS__); } }
 
 
-size_t test_lz4f_decompression_wBuffers(
+static size_t test_lz4f_decompression_wBuffers(
           const void* cSrc, size_t cSize,
                 void* dst, size_t dstCapacity, o_scenario_e o_scenario,
           const void* srcRef, size_t decompressedSize,
@@ -898,7 +898,7 @@ size_t test_lz4f_decompression_wBuffers(
 }
 
 
-size_t test_lz4f_decompression(const void* cSrc, size_t cSize,
+static size_t test_lz4f_decompression(const void* cSrc, size_t cSize,
                                const void* srcRef, size_t decompressedSize,
                                U64 crcOrig,
                                U32* const randState,
@@ -928,7 +928,7 @@ size_t test_lz4f_decompression(const void* cSrc, size_t cSize,
 }
 
 
-int fuzzerTests(U32 seed, unsigned nbTests, unsigned startTest, double compressibility, U32 duration_s)
+static int fuzzerTests(U32 seed, unsigned nbTests, unsigned startTest, double compressibility, U32 duration_s)
 {
     unsigned testNb = 0;
     size_t const CNBufferLength = 9 MB;  /* needs to be > 2x4MB to test large blocks */
@@ -1130,7 +1130,7 @@ int fuzzerTests(U32 seed, unsigned nbTests, unsigned startTest, double compressi
 }
 
 
-int FUZ_usage(const char* programName)
+static int FUZ_usage(const char* programName)
 {
     DISPLAY( "Usage :\n");
     DISPLAY( "      %s [args]\n", programName);
@@ -1146,6 +1146,12 @@ int FUZ_usage(const char* programName)
     return 0;
 }
 
+
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      lz4_frametest_example_main(cnt, arr)
+#endif
 
 int main(int argc, const char** argv)
 {

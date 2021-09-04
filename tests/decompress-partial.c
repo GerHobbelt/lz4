@@ -2,7 +2,7 @@
 #include "string.h"
 #include "lz4.h"
 
-const char source[] =
+static const char source[] =
   "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod\n"
   "tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim\n"
   "veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea\n"
@@ -26,14 +26,20 @@ const char source[] =
 
 #define BUFFER_SIZE 2048
 
-int main(void)
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      lz4_decompress_partial_example_main(cnt, arr)
+#endif
+
+int main(int argc, const char **argv)
 {
   int srcLen = (int)strlen(source);
   char cmpBuffer[BUFFER_SIZE];
   char outBuffer[BUFFER_SIZE];
   int cmpSize;
   int i;
-  
+
   cmpSize = LZ4_compress_default(source, cmpBuffer, srcLen, BUFFER_SIZE);
 
   for (i = cmpSize; i < cmpSize + 10; ++i) {
@@ -43,7 +49,7 @@ int main(void)
       return -1;
     }
   }
-  
+
   printf("test decompress-partial OK \n");
   return 0;
 }

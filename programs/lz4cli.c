@@ -39,7 +39,7 @@
 #include <stdio.h>    /* fprintf, getchar */
 #include <stdlib.h>   /* exit, calloc, free */
 #include <string.h>   /* strcmp, strlen */
-#include "bench.h"    /* BMK_benchFile, BMK_SetNbIterations, BMK_SetBlocksize, BMK_SetPause */
+#include "bench.h"    /* BMK_benchFile, BMK_SetBlocksize */
 #include "lz4io.h"    /* LZ4IO_compressFilename, LZ4IO_decompressFilename, LZ4IO_compressMultipleFilenames */
 #include "lz4hc.h"    /* LZ4HC_CLEVEL_MAX */
 #include "lz4.h"      /* LZ4_VERSION_STRING */
@@ -306,6 +306,12 @@ static operationMode_e determineOpMode(const char* inputFilename)
     if (!strcmp(inputFilename+extStart, LZ4_EXTENSION)) return om_decompress;
     else return om_compress;
 }
+
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      lz4_main(cnt, arr)
+#endif
 
 int main(int argc, const char** argv)
 {

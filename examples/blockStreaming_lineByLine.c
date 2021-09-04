@@ -145,7 +145,13 @@ static int compare(FILE* f0, FILE* f1)
 }
 
 
-int main(int argc, char* argv[])
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      lz4_blockStreaming_lineByLine_example_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     enum {
         MESSAGE_MAX_BYTES   = 1024,

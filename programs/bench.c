@@ -282,8 +282,8 @@ static clock_t g_time = 0;
 ***************************************/
 static U32 g_nbSeconds = NBSECONDS;
 static size_t g_blockSize = 0;
-int g_additionalParam = 0;
-int g_benchSeparately = 0;
+static int g_additionalParam = 0;
+static int g_benchSeparately = 0;
 
 void BMK_setNotificationLevel(unsigned level) { g_displayLevel=level; }
 

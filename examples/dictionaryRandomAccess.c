@@ -24,36 +24,36 @@ enum {
  * This is not a great magic number because it is a common word in ASCII.
  * However, it is important to have some versioning system in your format.
  */
-const char kTestMagic[] = { 'T', 'E', 'S', 'T' };
+static const char kTestMagic[] = { 'T', 'E', 'S', 'T' };
 
 
-void write_int(FILE* fp, int i) {
+static void write_int(FILE* fp, int i) {
     size_t written = fwrite(&i, sizeof(i), 1, fp);
     if (written != 1) { exit(10); }
 }
 
-void write_bin(FILE* fp, const void* array, size_t arrayBytes) {
+static void write_bin(FILE* fp, const void* array, size_t arrayBytes) {
     size_t written = fwrite(array, 1, arrayBytes, fp);
     if (written != arrayBytes) { exit(11); }
 }
 
-void read_int(FILE* fp, int* i) {
+static void read_int(FILE* fp, int* i) {
     size_t read = fread(i, sizeof(*i), 1, fp);
     if (read != 1) { exit(12); }
 }
 
-size_t read_bin(FILE* fp, void* array, size_t arrayBytes) {
+static size_t read_bin(FILE* fp, void* array, size_t arrayBytes) {
     size_t read = fread(array, 1, arrayBytes, fp);
     if (ferror(fp)) { exit(12); }
     return read;
 }
 
-void seek_bin(FILE* fp, long offset, int origin) {
+static void seek_bin(FILE* fp, long offset, int origin) {
     if (fseek(fp, offset, origin)) { exit(14); }
 }
 
 
-void test_compress(FILE* outFp, FILE* inpFp, void *dict, int dictSize)
+static void test_compress(FILE* outFp, FILE* inpFp, void *dict, int dictSize)
 {
     LZ4_stream_t lz4Stream_body;
     LZ4_stream_t* lz4Stream = &lz4Stream_body;
@@ -102,7 +102,7 @@ void test_compress(FILE* outFp, FILE* inpFp, void *dict, int dictSize)
 }
 
 
-void test_decompress(FILE* outFp, FILE* inpFp, void *dict, int dictSize, int offset, int length)
+static void test_decompress(FILE* outFp, FILE* inpFp, void *dict, int dictSize, int offset, int length)
 {
     LZ4_streamDecode_t lz4StreamDecode_body;
     LZ4_streamDecode_t* lz4StreamDecode = &lz4StreamDecode_body;
@@ -170,7 +170,7 @@ void test_decompress(FILE* outFp, FILE* inpFp, void *dict, int dictSize, int off
 }
 
 
-int compare(FILE* fp0, FILE* fp1, int length)
+static int compare(FILE* fp0, FILE* fp1, int length)
 {
     int result = 0;
 
@@ -195,7 +195,13 @@ int compare(FILE* fp0, FILE* fp1, int length)
 }
 
 
-int main(int argc, char* argv[])
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      lz4_dictionaryRandomAccess_example_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     char inpFilename[256] = { 0 };
     char lz4Filename[256] = { 0 };

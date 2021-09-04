@@ -56,7 +56,7 @@ static unsigned displayLevel = 2;
 /*********************************************************
 *  Command line
 *********************************************************/
-static int usage(char* programName)
+static int usage(const char* programName)
 {
     DISPLAY( "Compressible data generator\n");
     DISPLAY( "Usage :\n");
@@ -74,20 +74,26 @@ static int usage(char* programName)
 }
 
 
-int main(int argc, char** argv)
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      lz4_datagen_example_main(cnt, arr)
+#endif
+
+int main(int argc, const char** argv)
 {
     int argNb;
     double proba = (double)COMPRESSIBILITY_DEFAULT / 100;
     double litProba = 0.0;
     U64 size = SIZE_DEFAULT;
     U32 seed = SEED_DEFAULT;
-    char* programName;
+    const char* programName;
 
     /* Check command line */
     programName = argv[0];
     for(argNb=1; argNb<argc; argNb++)
     {
-        char* argument = argv[argNb];
+        const char* argument = argv[argNb];
 
         if(!argument) continue;   /* Protection if argument empty */
 

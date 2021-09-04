@@ -104,7 +104,7 @@ static int g_decompressionTest = 1;
 static int g_decompressionAlgo = ALL_DECOMPRESSORS;
 static int g_noPrompt = 0;
 
-static void BMK_setBlocksize(int bsize)
+void BMK_setBlocksize(int bsize)
 {
     g_chunkSize = bsize;
     DISPLAY("-Using Block Size of %i KB-\n", g_chunkSize>>10);
@@ -430,7 +430,7 @@ static int local_LZ4F_decompress_noHint(const char* src, char* dst, int srcSize,
 
 #define NB_COMPRESSION_ALGORITHMS 100
 #define NB_DECOMPRESSION_ALGORITHMS 100
-int fullSpeedBench(const char** fileNamesTable, int nbFiles)
+static int fullSpeedBench(const char** fileNamesTable, int nbFiles)
 {
     int fileIdx=0;
 
@@ -763,6 +763,12 @@ static int badusage(const char* exename)
     usage(exename);
     return 0;
 }
+
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      lz4_fullBench_example_main(cnt, arr)
+#endif
 
 int main(int argc, const char** argv)
 {

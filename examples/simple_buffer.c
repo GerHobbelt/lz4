@@ -22,10 +22,16 @@ void run_screaming(const char* message, const int code) {
 }
 
 
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      lz4_simple_buffer_example_main(cnt, arr)
+#endif
+
 /*
  * main
  */
-int main(void) {
+int main(int argc, const char **argv) {
   /* Introduction */
   // Below we will have a Compression and Decompression section to demonstrate.
   // There are a few important notes before we start:

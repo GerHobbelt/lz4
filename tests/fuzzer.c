@@ -1707,6 +1707,12 @@ static int FUZ_usage(const char* programName)
 }
 
 
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      lz4_fuzzer_example_main(cnt, arr)
+#endif
+
 int main(int argc, const char** argv)
 {
     U32 seed = 0;

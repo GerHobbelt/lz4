@@ -57,6 +57,12 @@ static int validate(const char* const tag)
     return 1;
 }
 
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      lz4_checkTag_example_main(cnt, arr)
+#endif
+
 int main(int argc, const char** argv)
 {
     const char* const exeName = argv[0];

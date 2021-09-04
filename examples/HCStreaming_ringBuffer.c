@@ -35,26 +35,26 @@ enum {
 };
 
 
-size_t write_int32(FILE* fp, int32_t i) {
+static size_t write_int32(FILE* fp, int32_t i) {
     return fwrite(&i, sizeof(i), 1, fp);
 }
 
-size_t write_bin(FILE* fp, const void* array, int arrayBytes) {
+static size_t write_bin(FILE* fp, const void* array, int arrayBytes) {
     assert(arrayBytes >= 0);
     return fwrite(array, 1, (size_t)arrayBytes, fp);
 }
 
-size_t read_int32(FILE* fp, int32_t* i) {
+static size_t read_int32(FILE* fp, int32_t* i) {
     return fread(i, sizeof(*i), 1, fp);
 }
 
-size_t read_bin(FILE* fp, void* array, int arrayBytes) {
+static size_t read_bin(FILE* fp, void* array, int arrayBytes) {
     assert(arrayBytes >= 0);
     return fread(array, 1, (size_t)arrayBytes, fp);
 }
 
 
-void test_compress(FILE* outFp, FILE* inpFp)
+static void test_compress(FILE* outFp, FILE* inpFp)
 {
     LZ4_streamHC_t lz4Stream_body = { 0 };
     LZ4_streamHC_t* lz4Stream = &lz4Stream_body;
@@ -89,7 +89,7 @@ void test_compress(FILE* outFp, FILE* inpFp)
 }
 
 
-void test_decompress(FILE* outFp, FILE* inpFp)
+static void test_decompress(FILE* outFp, FILE* inpFp)
 {
     static char decBuf[DEC_BUFFER_BYTES];
     int decOffset = 0;
@@ -130,7 +130,7 @@ void test_decompress(FILE* outFp, FILE* inpFp)
 // Compare 2 files content
 // return 0 if identical
 // return ByteNb>0 if different
-size_t compare(FILE* f0, FILE* f1)
+static size_t compare(FILE* f0, FILE* f1)
 {
     size_t result = 1;
 
@@ -162,6 +162,12 @@ size_t compare(FILE* f0, FILE* f1)
     return result;
 }
 
+
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      lz4_HCStreaming_ringBuffer_example_main(cnt, arr)
+#endif
 
 int main(int argc, const char** argv)
 {

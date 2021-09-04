@@ -125,7 +125,7 @@ static void freeCResources(cRess_t ress)
     (void) LZ4F_freeDecompressionContext(ress.ctx);
 }
 
-int frameCheck(cRess_t ress, FILE* const srcFile, unsigned bsid, size_t blockSize)
+static int frameCheck(cRess_t ress, FILE* const srcFile, unsigned bsid, size_t blockSize)
 {
     LZ4F_errorCode_t nextToLoad = 0;
     size_t curblocksize = 0;
@@ -199,7 +199,7 @@ int frameCheck(cRess_t ress, FILE* const srcFile, unsigned bsid, size_t blockSiz
     return 0;
 }
 
-int FUZ_usage(const char* programName)
+static int FUZ_usage(const char* programName)
 {
     DISPLAY( "Usage :\n");
     DISPLAY( "      %s [args] filename\n", programName);
@@ -212,6 +212,12 @@ int FUZ_usage(const char* programName)
     return 0;
 }
 
+
+
+
+#if defined(BUILD_MONOLITHIC)
+#define main(cnt, arr)      lz4_checkFrame_example_main(cnt, arr)
+#endif
 
 int main(int argc, const char** argv)
 {
