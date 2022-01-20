@@ -207,6 +207,11 @@ unsigned long long WorkCtx::doWork(void* firstSrc, void* firstDst, unsigned nThr
     while (true) {
         if (needMoreBlocks()) {
             bool is_EOF = false;
+            struct EOF_sentry { // setEOF after all reading jobs are done
+                WorkCtx* pctx;
+                bool& is_EOF;
+                ~EOF_sentry() { if (is_EOF) pctx->setEOF(); }
+            } const _{this, is_EOF};
             if (blockIndex > 0) {
                 src = getSrcBuffer();
                 size_t size = io.read(src, blockSize);
@@ -235,7 +240,6 @@ unsigned long long WorkCtx::doWork(void* firstSrc, void* firstDst, unsigned nThr
             else {
                 pushPendingBlock(blocks.back());
             }
-            if (is_EOF) setEOF();
         }
         else {
             if (isEOF() && finishedBlock == blockIndex) break;
