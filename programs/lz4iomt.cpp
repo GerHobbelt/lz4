@@ -206,13 +206,19 @@ unsigned long long WorkCtx::doWork(void* firstSrc, void* firstDst, unsigned nThr
 
     while (true) {
         if (needMoreBlocks()) {
+            bool is_EOF = false;
+            struct EOF_sentry { // setEOF after all reading jobs are done
+                WorkCtx* pctx;
+                bool& is_EOF;
+                ~EOF_sentry() { if (is_EOF) pctx->setEOF(); }
+            } const _{this, is_EOF};
             if (blockIndex > 0) {
                 src = getSrcBuffer();
                 size_t size = io.read(src, blockSize);
                 if (size < blockSize) {
                     const char *srcFileName = io.readError();
                     if (srcFileName) EXM_THROW(37, "Error reading %s ", srcFileName);
-                    setEOF();
+                    is_EOF = true;
                 }
                 srcSize = size;
                 if (size == 0) {
