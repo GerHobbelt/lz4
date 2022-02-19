@@ -360,6 +360,7 @@ test-lz4-basic: lz4 datagen unlz4 lz4cat
 	$(DIFF) -q tmp-tlb-hw tmp-tlb4
 	$(LZ4) -f tmp-tlb-hw
 	$(LZ4) --list tmp-tlb-hw.lz4           # test --list on valid single-frame file
+	$(LZ4) --list < tmp-tlb-hw.lz4         # test --list from stdin (file only)
 	$(CAT) tmp-tlb-hw >> tmp-tlb-hw.lz4
 	$(LZ4) -f tmp-tlb-hw.lz4               # uncompress valid frame followed by invalid data
 	$(LZ4) -BX tmp-tlb-hw -c -q | $(LZ4) -tv  # test block checksum
@@ -448,6 +449,7 @@ test-lz4-opt-parser: lz4 datagen
 	$(DATAGEN) -g256K      | $(LZ4) -12B4D   | $(LZ4) -t
 	$(DATAGEN) -g512K -P25 | $(LZ4) -12BD    | $(LZ4) -t
 	$(DATAGEN) -g1M        | $(LZ4) -12B5    | $(LZ4) -t
+	$(DATAGEN) -g1M -s2    | $(LZ4) -12B4D   | $(LZ4) -t
 	$(DATAGEN) -g2M -P99   | $(LZ4) -11B4D   | $(LZ4) -t
 	$(DATAGEN) -g4M        | $(LZ4) -11vq    | $(LZ4) -qt
 	$(DATAGEN) -g8M        | $(LZ4) -11B4    | $(LZ4) -t
