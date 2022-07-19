@@ -47,7 +47,6 @@
 *****************************/
 #include "platform.h"  /* Large File Support, SET_BINARY_MODE, SET_SPARSE_FILE_MODE, PLATFORM_POSIX_VERSION, __64BIT__ */
 #include "util.h"      /* UTIL_getFileStat, UTIL_setFileStat */
-#include <stdio.h>     /* fprintf, fopen, fread, stdin, stdout, fflush, getchar */
 #include <stdlib.h>    /* malloc, free */
 #include <string.h>    /* strerror, strcmp, strlen */
 #include <time.h>      /* clock */
@@ -55,9 +54,8 @@
 #include <sys/stat.h>  /* stat64 */
 #include "lz4.h"       /* still required for legacy format */
 #include "lz4hc.h"     /* still required for legacy format */
-#define LZ4F_STATIC_LINKING_ONLY
-#include "lz4frame.h"
 #include "lz4io.h"
+#include "lz4iomt.h"
 
 
 /*****************************
@@ -95,11 +93,13 @@
 static int g_displayLevel = 0;   /* 0 : no display  ; 1: errors  ; 2 : + result + interaction + warnings ; 3 : + progression; 4 : + information */
 
 #define DISPLAYUPDATE(l, ...) if (g_displayLevel>=l) { \
-            if ( ((clock() - g_time) > refreshRate)    \
-              || (g_displayLevel>=4) ) {               \
-                g_time = clock();                      \
+            for (clock_t time_now = clock();           \
+                 time_now - g_time > refreshRate       \
+              || (g_displayLevel>=4); ) {              \
+                g_time = time_now;                     \
                 DISPLAY(__VA_ARGS__);                  \
                 if (g_displayLevel>=4) fflush(stderr); \
+                break;                                 \
         }   }
 static const clock_t refreshRate = CLOCKS_PER_SEC / 6;
 static clock_t g_time = 0;
@@ -531,15 +531,6 @@ int LZ4IO_compressMultipleFilenames_Legacy(
 *  Compression using Frame format
 *********************************************/
 
-typedef struct {
-    void*  srcBuffer;
-    size_t srcBufferSize;
-    void*  dstBuffer;
-    size_t dstBufferSize;
-    LZ4F_compressionContext_t ctx;
-    LZ4F_CDict* cdict;
-} cRess_t;
-
 static void* LZ4IO_createDict(size_t* dictSize, const char* const dictFilename)
 {
     size_t readSize;
@@ -707,6 +698,13 @@ LZ4IO_compressFilename_extRess(cRess_t ress,
     else
 
     /* multiple-blocks file */
+#ifdef LZ4IO_USE_MT
+    if (LZ4IO_compressUseMultiThread(ress.cdict, &prefs))
+    {
+        filesize = LZ4IO_compressFilename_extRess_multithread(&ress, srcFile, srcFileName, dstFile, &prefs, &compressedfilesize);
+    }
+    else
+#endif
     {
         /* Write Frame Header */
         size_t const headerSize = LZ4F_compressBegin_usingCDict(ctx, dstBuffer, dstBufferSize, ress.cdict, &prefs);
