@@ -1,10 +1,13 @@
 // Microsoft Visual C++ generated resource script.
 //
 
-#include "lz4.h" /* LZ4_VERSION_STRING */
+//#define WIN32_LEAN_AND_MEAN
 #define APSTUDIO_READONLY_SYMBOLS
-#include "verrsrc.h"
-#undef APSTUDIO_READONLY_SYMBOLS
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include <windows.h>
+#include <winver.h>
+
+#include "lz4.h" /* LZ4_VERSION_STRING */
 
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
