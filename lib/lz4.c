@@ -2051,7 +2051,7 @@ LZ4_decompress_generic(
             assert(match <= op);  /* overflow check */
 
             /* check underflow */
-            if (unlikely(match < dst)) { goto _output_error; }
+            if (unlikely((const char *)match < dst)) { goto _output_error; }
 
             /* get matchlength */
             length = token & ML_MASK;
@@ -2171,7 +2171,7 @@ LZ4_decompress_generic(
                 assert(match <= op); /* check overflow */
 
                 /* check underflow*/
-                if (unlikely(match < dst)) { goto _output_error; }
+                if (unlikely((const char *)match < dst)) { goto _output_error; }
 
                 /* Do not deal with overlapping matches. */
                 if ( (length != ML_MASK)
