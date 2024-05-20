@@ -1,6 +1,6 @@
 /*
    LZ4 - Fast LZ compression algorithm
-   Copyright (C) 2011-2020, Yann Collet.
+   Copyright (C) 2011-2023, Yann Collet.
 
    BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
 
@@ -106,15 +106,13 @@
 #  define LZ4_SRC_INCLUDED 1
 #endif
 
-#ifndef LZ4_STATIC_LINKING_ONLY
-#define LZ4_STATIC_LINKING_ONLY
-#endif
-
 #ifndef LZ4_DISABLE_DEPRECATE_WARNINGS
-#define LZ4_DISABLE_DEPRECATE_WARNINGS /* due to LZ4_decompress_safe_withPrefix64k */
+#  define LZ4_DISABLE_DEPRECATE_WARNINGS /* due to LZ4_decompress_safe_withPrefix64k */
 #endif
 
-#define LZ4_STATIC_LINKING_ONLY  /* LZ4_DISTANCE_MAX */
+#ifndef LZ4_STATIC_LINKING_ONLY
+#  define LZ4_STATIC_LINKING_ONLY
+#endif
 #include "lz4.h"
 /* see also "memory routines" below */
 
@@ -1936,6 +1934,17 @@ read_variable_length(const BYTE** ip, const BYTE* ilimit,
     if (initial_check && unlikely((*ip) >= ilimit)) {    /* read limit reached */
         return rvl_error;
     }
+    s = **ip;
+    (*ip)++;
+    length += s;
+    if (unlikely((*ip) > ilimit)) {    /* read limit reached */
+        return rvl_error;
+    }
+    /* accumulator overflow detection (32-bit mode only) */
+    if ((sizeof(length) < 8) && unlikely(length > ((Rvl_t)(-1)/2)) ) {
+        return rvl_error;
+    }
+    if (likely(s != 255)) return length;
     do {
         s = **ip;
         (*ip)++;
@@ -1944,10 +1953,10 @@ read_variable_length(const BYTE** ip, const BYTE* ilimit,
             return rvl_error;
         }
         /* accumulator overflow detection (32-bit mode only) */
-        if ((sizeof(length)<8) && unlikely(length > ((Rvl_t)(-1)/2)) ) {
+        if ((sizeof(length) < 8) && unlikely(length > ((Rvl_t)(-1)/2)) ) {
             return rvl_error;
         }
-    } while (s==255);
+    } while (s == 255);
 
     return length;
 }
