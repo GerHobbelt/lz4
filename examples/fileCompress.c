@@ -153,6 +153,10 @@ int compareFiles(FILE* fp0, FILE* fp1)
     return result;
 }
 
+#if defined(BUILD_MONOLITHIC)
+#define main lz4_file_compress_example_main
+#endif
+
 int main(int argc, const char **argv) {
     char inpFilename[256] = { 0 };
     char lz4Filename[256] = { 0 };
@@ -160,7 +164,7 @@ int main(int argc, const char **argv) {
 
     if (argc < 2) {
         printf("Please specify input filename\n");
-        return 0;
+        return 1;
     }
 
     snprintf(inpFilename, 256, "%s", argv[1]);
@@ -230,4 +234,5 @@ int main(int argc, const char **argv) {
         printf("verify : OK\n");
     }
 
+		return 0;
 }

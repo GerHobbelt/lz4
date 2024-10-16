@@ -40,7 +40,7 @@ using namespace std;
 
 
 /* trim string at the beginning and at the end */
-void trim(string& s, string characters)
+static void trim(string& s, string characters)
 {
     size_t p = s.find_first_not_of(characters);
     s.erase(0, p);
@@ -52,7 +52,7 @@ void trim(string& s, string characters)
 
 
 /* trim C++ style comments */
-void trim_comments(string &s)
+static void trim_comments(string &s)
 {
     size_t spos, epos;
 
@@ -63,7 +63,7 @@ void trim_comments(string &s)
 
 
 /* get lines until a given terminator */
-vector<string> get_lines(vector<string>& input, int& linenum, string terminator)
+static vector<string> get_lines(vector<string>& input, int& linenum, string terminator)
 {
     vector<string> out;
     string line;
@@ -86,7 +86,7 @@ vector<string> get_lines(vector<string>& input, int& linenum, string terminator)
 
 
 /* print line with LZ4LIB_API removed and C++ comments not bold */
-void print_line(stringstream &sout, string line)
+static void print_line(stringstream &sout, string line)
 {
     size_t spos, epos;
 
@@ -103,7 +103,11 @@ void print_line(stringstream &sout, string line)
 }
 
 
-int main(int argc, char *argv[]) {
+#if defined(BUILD_MONOLITHIC)
+#define main lz4_gen_manual_tool_main
+#endif
+
+int main(int argc, const char **argv) {
     char exclam;
     int linenum, chapter = 1;
     vector<string> input, lines, comments, chapters;

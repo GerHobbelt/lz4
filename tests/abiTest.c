@@ -198,6 +198,10 @@ int bad_usage(const char* exeName)
 }
 
 
+#if defined(BUILD_MONOLITHIC)
+#define main   lz4_ABI_test_main
+#endif
+
 int main(int argCount, const char** argv)
 {
     const char* const exeName = argv[0];

@@ -28,6 +28,10 @@ const char source[] =
 
 #define BUFFER_SIZE 2048
 
+#if defined(BUILD_MONOLITHIC)
+#  define main lz4_decompress_partial_dict_test_main
+#endif
+
 int main(void)
 {
   int srcLen = (int)strlen(source);

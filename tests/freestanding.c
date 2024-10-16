@@ -28,9 +28,22 @@
 #  define EXTERN_C
 #endif
 
+#if defined(BUILD_MONOLITHIC)
+#  define main lz4_freestanding_test_main
+#endif
+
+
 
 #if !defined(__x86_64__) || !defined(__linux__)
-int main(int argc, char** argv) { return 0; }
+
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(void) {
+  fprintf(stderr, "example is not supported.\n");
+	return 1;
+}
+
 #else
 
 static void MY_exit(int exitCode);
@@ -230,7 +243,8 @@ EXTERN_C void __attribute__((force_align_arg_pointer)) _start(void) {
     MY_exit(0);
 }
 
-int main(int argc, char** argv) {
+int main(void)
+{
     test();
     MY_exit(0);
     return 0;

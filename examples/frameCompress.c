@@ -383,7 +383,7 @@ static int compareFiles(FILE* fp0, FILE* fp1, FILE* fpUnc, long uncOffset)
 #define main(cnt, arr)      lz4_frameCompress_example_main(cnt, arr)
 #endif
 
-int main(int argc, char **argv) {
+int main(int argc, const char **argv) {
     char inpFilename[256] = { 0 };
     char lz4Filename[256] = { 0 };
     char decFilename[256] = { 0 };
