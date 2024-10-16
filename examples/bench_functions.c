@@ -72,6 +72,10 @@
 #include <limits.h>   /* for INT_MAX */
 #include <assert.h>
 
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+
 /* We need to know what one billion is for clock timing. */
 #define BILLION 1000000000L
 
