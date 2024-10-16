@@ -63,7 +63,6 @@ all: fullbench fuzzer frametest roundTripTest datagen checkFrame decompress-part
 all32: CFLAGS+=-m32
 all32: all
 
-.PHONY: $(LZ4)
 .PHONY: lz4
 lz4:
 	$(MAKE) -C $(PRGDIR) $@ CFLAGS="$(CFLAGS)"
@@ -126,7 +125,7 @@ roundTripTest : lz4.o lz4hc.o xxhash.o roundTripTest.c
 	$(CC) $(ALLFLAGS) $^ -o $@$(EXT)
 
 CLEAN += datagen
-datagen : $(PRGDIR)/datagen.c datagencli.c
+datagen : datagen.c $(PRGDIR)/lorem.c loremOut.c datagencli.c
 	$(CC) $(ALLFLAGS) -I$(PRGDIR) $^ -o $@$(EXT)
 
 CLEAN += checkFrame
@@ -175,11 +174,8 @@ checkTag: checkTag.c $(LIBDIR)/lz4.h
 ifeq ($(POSIX_ENV),Yes)
 
 MD5 ?= $(if $(filter Darwin,$(shell $(UNAME))),md5 -r,md5sum)
-CMP ?= cmp
 GREP?= grep
-DIFF?= $(if $(filter SunOS,$(shell $(UNAME))),gdiff,diff)
 CAT ?= cat
-DD  ?= dd
 DATAGEN?=./datagen
 PATH:=../programs:$(shell pwd):$(PATH)
 

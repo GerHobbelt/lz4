@@ -73,19 +73,10 @@ set(LZ4_PROG_SOURCE_DIR "${LZ4_TOP_SOURCE_DIR}/programs")
 include_directories("${LZ4_LIB_SOURCE_DIR}")
 
 # CLI sources
-set(LZ4_SOURCES
-  "${LZ4_LIB_SOURCE_DIR}/lz4.c"
-  "${LZ4_LIB_SOURCE_DIR}/lz4hc.c"
-  "${LZ4_LIB_SOURCE_DIR}/lz4.h"
-  "${LZ4_LIB_SOURCE_DIR}/lz4hc.h"
-  "${LZ4_LIB_SOURCE_DIR}/lz4frame.c"
-  "${LZ4_LIB_SOURCE_DIR}/lz4frame.h"
-  "${LZ4_LIB_SOURCE_DIR}/xxhash.c")
-set(LZ4_CLI_SOURCES
-  "${LZ4_PROG_SOURCE_DIR}/bench.c"
-  "${LZ4_PROG_SOURCE_DIR}/lz4cli.c"
-  "${LZ4_PROG_SOURCE_DIR}/lz4io.c"
-  "${LZ4_PROG_SOURCE_DIR}/datagen.c")
+file(GLOB LZ4_SOURCES
+     "${LZ4_LIB_SOURCE_DIR}/*.c")
+file(GLOB LZ4_CLI_SOURCES
+     "${LZ4_PROG_SOURCE_DIR}/*.c")
 list(APPEND LZ4_CLI_SOURCES ${LZ4_SOURCES}) # LZ4_CLI always use liblz4 sources directly.
 
 # Whether to use position independent code for the static library.  If
@@ -125,14 +116,25 @@ if(BUILD_STATIC_LIBS)
     POSITION_INDEPENDENT_CODE ${LZ4_POSITION_INDEPENDENT_LIB})
   list(APPEND LZ4_LIBRARIES_BUILT lz4_static)
 endif()
+# Add unified target if building only a shared or static library.
+if(BUILD_SHARED_LIBS AND NOT BUILD_STATIC_LIBS)
+  add_library(lz4 INTERFACE)
+  target_link_libraries(lz4 INTERFACE lz4_shared)
+  list(APPEND LZ4_LIBRARIES_BUILT lz4)
+endif()
+if(NOT BUILD_SHARED_LIBS AND BUILD_STATIC_LIBS)
+  add_library(lz4 INTERFACE)
+  target_link_libraries(lz4 INTERFACE lz4_static)
+  list(APPEND LZ4_LIBRARIES_BUILT lz4)
+endif()
 
-# xxhash namesapce
+# xxhash namespace
 if(BUILD_SHARED_LIBS)
-  target_compile_definitions(lz4_shared PRIVATE 
+  target_compile_definitions(lz4_shared PRIVATE
     XXH_NAMESPACE=LZ4_)
 endif()
 if(BUILD_STATIC_LIBS)
-  target_compile_definitions(lz4_static PRIVATE 
+  target_compile_definitions(lz4_static PRIVATE
     XXH_NAMESPACE=LZ4_)
 endif()
 
@@ -154,6 +156,7 @@ endif()
 include (CheckCCompilerFlag)
 foreach (flag
     # GCC-style
+    -pedantic-errors
     -Wall
     -Wextra
     -Wundef
@@ -224,16 +227,21 @@ if(NOT LZ4_BUNDLED_MODE)
       ${CMAKE_CURRENT_BINARY_DIR}/lz4ConfigVersion.cmake
     DESTINATION ${LZ4_PKG_INSTALLDIR})
 
-  # install lz4cat and unlz4 symlinks on *nix
+  # Install lz4cat and unlz4 symlinks on Unix systems
   if(UNIX AND LZ4_BUILD_CLI)
-    install(CODE "
-      foreach(f lz4cat unlz4)
-        set(dest \"\$ENV{DESTDIR}${CMAKE_INSTALL_FULL_BINDIR}/\${f}\")
-        message(STATUS \"Symlinking: \${dest} -> lz4\")
-        execute_process(
-          COMMAND \"${CMAKE_COMMAND}\" -E create_symlink lz4 \"\${dest}\")
-      endforeach()
-    ")
+    foreach(cli_tool IN ITEMS lz4cat unlz4)
+      # Create a custom target for the symlink creation
+      add_custom_target("create_${cli_tool}_symlink" ALL
+        COMMAND ${CMAKE_COMMAND} -E create_symlink
+          $<TARGET_FILE_NAME:lz4cli> ${cli_tool}
+        COMMENT "Creating symlink for ${cli_tool}"
+        VERBATIM)
+
+      # Install the symlink into the binary installation directory
+      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${cli_tool}"
+        DESTINATION ${CMAKE_INSTALL_BINDIR}
+        RENAME ${cli_tool})
+    endforeach()
 
     # create manpage aliases
     foreach(f lz4cat unlz4)
