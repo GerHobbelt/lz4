@@ -340,7 +340,7 @@ static int compareFiles(FILE* fp0, FILE* fp1, FILE* fpUnc, long uncOffset)
     int result = 0;
     long bytesRead = 0;
     long bytesToOffset = -1;
-    long b1Size = 1024;
+#define b1Size    1024
 
     while (result==0) {
         char b1[b1Size];
