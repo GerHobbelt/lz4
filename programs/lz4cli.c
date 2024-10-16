@@ -370,6 +370,21 @@ static unsigned init_nbWorkers(void)
     return LZ4_NBWORKERS_DEFAULT;
 }
 
+#define ENV_CLEVEL "LZ4_CLEVEL"
+
+static int init_cLevel(void)
+{
+    const char* const env = getenv(ENV_CLEVEL);
+    if (env != NULL) {
+        const char* ptr = env;
+        if ((*ptr>='0') && (*ptr<='9')) {
+            return (int)readU32FromChar(&ptr);
+        }
+        DISPLAYLEVEL(2, "Ignore environment variable setting %s=%s: not a valid unsigned value \n", ENV_CLEVEL, env);
+    }
+    return LZ4_CLEVEL_DEFAULT;
+}
+
 
 #if defined(BUILD_MONOLITHIC)
 #define main(cnt, arr)      lz4_main(cnt, arr)
@@ -378,7 +393,7 @@ static unsigned init_nbWorkers(void)
 int main(int argCount, const char** argv)
 {
     int argNb,
-        cLevel=1,
+        cLevel=init_cLevel(),
         cLevelLast=-10000,
         legacy_format=0,
         forceStdout=0,
@@ -464,7 +479,7 @@ int main(int argCount, const char** argv)
                 if (!strcmp(argument,  "--no-crc")) { LZ4IO_setStreamChecksumMode(prefs, 0); LZ4IO_setBlockChecksumMode(prefs, 0); BMK_skipChecksums(1); continue; }
                 if (!strcmp(argument,  "--content-size")) { LZ4IO_setContentSize(prefs, 1); continue; }
                 if (!strcmp(argument,  "--no-content-size")) { LZ4IO_setContentSize(prefs, 0); continue; }
-                if (!strcmp(argument,  "--list")) { mode = om_list; continue; }
+                if (!strcmp(argument,  "--list")) { mode = om_list; multiple_inputs = 1; continue; }
                 if (!strcmp(argument,  "--sparse")) { LZ4IO_setSparseFile(prefs, 2); continue; }
                 if (!strcmp(argument,  "--no-sparse")) { LZ4IO_setSparseFile(prefs, 0); continue; }
                 if (!strcmp(argument,  "--favor-decSpeed")) { LZ4IO_favorDecSpeed(prefs, 1); continue; }
@@ -765,16 +780,7 @@ int main(int argCount, const char** argv)
     }
 
     /* No output filename ==> try to select one automatically (when possible) */
-    while ((!output_filename) && (multiple_inputs==0)) {
-        if (!IS_CONSOLE(stdout) && mode != om_list) {
-            /* Default to stdout whenever stdout is not the console.
-             * Note : this policy may change in the future, therefore don't rely on it !
-             * To ensure `stdout` is explicitly selected, use `-c` command flag.
-             * Conversely, to ensure output will not become `stdout`, use `-m` command flag */
-            DISPLAYLEVEL(1, "Warning : using stdout as default output. Do not rely on this behavior: use explicit `-c` instead ! \n");
-            output_filename = stdoutmark;
-            break;
-        }
+    if ((!output_filename) && (multiple_inputs==0)) {
         if (mode == om_auto) {  /* auto-determine compression or decompression, based on file extension */
             mode = determineOpMode(input_filename);
         }
@@ -786,9 +792,9 @@ int main(int argCount, const char** argv)
             strcat(dynNameSpace, LZ4_EXTENSION);
             output_filename = dynNameSpace;
             DISPLAYLEVEL(2, "Compressed filename will be : %s \n", output_filename);
-            break;
         }
-        if (mode == om_decompress) {/* decompress to file (automatic output name only works if input filename has correct format extension) */
+        if (mode == om_decompress) {
+            /* decompress to file (automatic output name only works if input filename has correct format extension) */
             size_t outl;
             size_t const inl = strlen(input_filename);
             dynNameSpace = (char*)calloc(1,inl+1);
@@ -801,7 +807,6 @@ int main(int argCount, const char** argv)
             output_filename = dynNameSpace;
             DISPLAYLEVEL(2, "Decoding file %s \n", output_filename);
         }
-        break;
     }
 
     if (mode == om_list) {
