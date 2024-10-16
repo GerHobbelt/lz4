@@ -355,6 +355,20 @@ static operationMode_e determineOpMode(const char* inputFilename)
     else return om_compress;
 }
 
+#define ENV_NBTHREADS "LZ4_NBWORKERS"
+
+static unsigned init_nbWorkers(void)
+{
+    const char* const env = getenv(ENV_NBTHREADS);
+    if (env != NULL) {
+        const char* ptr = env;
+        if ((*ptr>='0') && (*ptr<='9')) {
+            return readU32FromChar(&ptr);
+        }
+        DISPLAYLEVEL(2, "Ignore environment variable setting %s=%s: not a valid unsigned value \n", ENV_NBTHREADS, env);
+    }
+    return LZ4_NBWORKERS_DEFAULT;
+}
 
 
 #if defined(BUILD_MONOLITHIC)
@@ -373,7 +387,7 @@ int main(int argCount, const char** argv)
         multiple_inputs=0,
         all_arguments_are_files=0,
         operationResult=0;
-    unsigned nbWorkers = LZ4_NBWORKERS_DEFAULT;
+    unsigned nbWorkers = init_nbWorkers();
     operationMode_e mode = om_auto;
     const char* input_filename = NULL;
     const char* output_filename= NULL;
@@ -692,11 +706,13 @@ int main(int argCount, const char** argv)
     DISPLAYLEVEL(5, "_FILE_OFFSET_BITS defined: %ldL\n", (long) _FILE_OFFSET_BITS);
 #endif
 #if !LZ4IO_MULTITHREAD
-    if (nbWorkers > 1)
+    if (nbWorkers > 1) {
         DISPLAYLEVEL(2, "warning: this executable doesn't support multithreading \n");
+    }
 #endif
-    if ((mode == om_compress) || (mode == om_bench))
+    if ((mode == om_compress) || (mode == om_bench)) {
         DISPLAYLEVEL(4, "Blocks size : %u KB\n", (U32)(blockSize>>10));
+    }
 
     if (multiple_inputs) {
         input_filename = inFileNames[0];
@@ -834,7 +850,13 @@ int main(int argCount, const char** argv)
         if (nbWorkers != 1) {
             if (nbWorkers==0)
                 nbWorkers = (unsigned)LZ4IO_defaultNbWorkers();
-            DISPLAYLEVEL(3, "Using %u threads for compression \n", nbWorkers);
+            if (nbWorkers > LZ4_NBWORKERS_MAX) {
+                DISPLAYLEVEL(3, "Requested %u threads too large => automatically reduced to %u \n",
+                            nbWorkers, LZ4_NBWORKERS_MAX);
+                nbWorkers = LZ4_NBWORKERS_MAX;
+            } else {
+                DISPLAYLEVEL(3, "Using %u threads for compression \n", nbWorkers);
+            }
         }
         LZ4IO_setNbWorkers(prefs, (int)nbWorkers);
 #endif
