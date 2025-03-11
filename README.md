@@ -123,7 +123,7 @@ Most distributions are bundled with a package manager
 which allows easy installation of both the `liblz4` library
 and the `lz4` command line interface.
 
-[![Packaging status](https://repology.org/badge/vertical-allrepos/lz4.svg)](https://repology.org/project/lz4/versions)
+[![Packaging status](https://repology.org/badge/vertical-allrepos/lz4.svg?columns=4&exclude_unsupported=1)](https://repology.org/project/lz4/versions)
 
 
 ### Special Thanks
