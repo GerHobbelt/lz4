@@ -257,7 +257,7 @@ int main(int argc, const char** argv)
         FILE* outFp = fopen(decFilename, "wb");
 
         printf("decompress : %s -> %s\n", lz4Filename, decFilename);
-        test_decompress(outFp, inpFp, dict, DICTIONARY_BYTES, offset, length);
+        test_decompress(outFp, inpFp, dict, dictSize, offset, length);
         printf("decompress : done\n");
 
         fclose(outFp);

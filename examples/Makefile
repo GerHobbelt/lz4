@@ -35,6 +35,7 @@ WFLAGS     = -std=gnu99 -Wall -Wextra -Wundef -Wshadow -Wcast-align -Wstrict-pro
 CFLAGS     = $(WFLAGS) -O2 $(USERCFLAGS)
 
 TESTFILE   = Makefile
+TESTFILE_SMALL= .gitignore
 SLIBLZ4   := $(LIBDIR)/liblz4.a
 LZ4DIR     = ../programs
 LZ4        = $(LZ4DIR)/lz4
@@ -80,6 +81,7 @@ test : all $(LZ4)
 	./blockStreaming_lineByLine$(EXT) $(TESTFILE)
 	@echo "\n=== Dictionary Random Access ==="
 	./dictionaryRandomAccess$(EXT) $(TESTFILE) $(TESTFILE) 1100 1400
+	./dictionaryRandomAccess$(EXT) $(TESTFILE_SMALL) $(TESTFILE_SMALL) 0 32
 	@echo "\n=== Frame compression ==="
 	./frameCompress$(EXT) $(TESTFILE)
 	$(LZ4) -vt $(TESTFILE).lz4

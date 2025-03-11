@@ -32,8 +32,9 @@ jobs:
           #   pkgs         : apt-get package names.  It can include multiple package names which are delimited by space.
           #   cc           : C compiler executable.
           #   cxx          : C++ compiler executable for targets `cxxtest` and `ctocxxtest`.
-          #   x32          : Set 'true' if compiler supports x32.  Otherwise, set 'false'.
-          #                  Set 'fail' if it supports x32 but fails for now.  'fail' cases must be removed.
+          #   x32          : Note: x32 tests do no longer work on github ci.
+          #                  Set 'true' if compiler & os support x32.  Otherwise, set 'false'.
+          #                  Set 'fail' if it supports x32 but fails for now. 'fail' cases must be removed.
           #   x86          : Set 'true' if compiler supports x86 (-m32).  Otherwise, set 'false'.
           #                  Set 'fail' if it supports x86 but fails for now.  'fail' cases must be removed.
           #   cxxtest      : Set 'true' if it can be compiled as C++ code.  Otherwise, set 'false'.
@@ -51,8 +52,8 @@ jobs:
           { pkgs: 'gcc-11 g++-11 lib32gcc-11-dev libx32gcc-11-dev',     cc: gcc-11,    cxx: g++-11,      x32: 'false', x86: 'true', cxxtest: 'true',  freestanding: 'true',  os: ubuntu-22.04,  },
           { pkgs: 'gcc-10 g++-10 lib32gcc-10-dev libx32gcc-10-dev',     cc: gcc-10,    cxx: g++-10,      x32: 'false', x86: 'true', cxxtest: 'true',  freestanding: 'true',  os: ubuntu-22.04,  },
           { pkgs: 'gcc-9 g++-9 lib32gcc-9-dev libx32gcc-9-dev',         cc: gcc-9,     cxx: g++-9,       x32: 'false', x86: 'true', cxxtest: 'true',  freestanding: 'true',  os: ubuntu-22.04,  },
-          { pkgs: 'gcc-8 g++-8 lib32gcc-8-dev libx32gcc-8-dev',         cc: gcc-8,     cxx: g++-8,       x32: 'true', x86: 'true', cxxtest: 'true',  freestanding: 'true',  os: ubuntu-20.04,  },
-          { pkgs: 'gcc-7 g++-7 lib32gcc-7-dev libx32gcc-7-dev',         cc: gcc-7,     cxx: g++-7,       x32: 'true', x86: 'true', cxxtest: 'true',  freestanding: 'true',  os: ubuntu-20.04,  },
+          { pkgs: 'gcc-8 g++-8 lib32gcc-8-dev libx32gcc-8-dev',         cc: gcc-8,     cxx: g++-8,       x32: 'false', x86: 'true', cxxtest: 'true',  freestanding: 'true',  os: ubuntu-20.04,  },
+          { pkgs: 'gcc-7 g++-7 lib32gcc-7-dev libx32gcc-7-dev',         cc: gcc-7,     cxx: g++-7,       x32: 'false', x86: 'true', cxxtest: 'true',  freestanding: 'true',  os: ubuntu-20.04,  },
 
           # clang
           { pkgs: 'lib32gcc-12-dev libx32gcc-12-dev',                   cc: clang,     cxx: clang++,     x32: 'false', x86: 'true', cxxtest: 'true',  freestanding: 'false', os: ubuntu-latest, },
@@ -61,11 +62,11 @@ jobs:
           { pkgs: 'clang-13  lib32gcc-12-dev libx32gcc-12-dev',         cc: clang-13,  cxx: clang++-13,  x32: 'false', x86: 'true', cxxtest: 'true',  freestanding: 'false', os: ubuntu-22.04,  },
           { pkgs: 'clang-12  lib32gcc-12-dev libx32gcc-12-dev',         cc: clang-12,  cxx: clang++-12,  x32: 'false', x86: 'true', cxxtest: 'true',  freestanding: 'false', os: ubuntu-22.04,  },
           { pkgs: 'clang-11  lib32gcc-12-dev libx32gcc-12-dev',         cc: clang-11,  cxx: clang++-11,  x32: 'false', x86: 'true', cxxtest: 'true',  freestanding: 'false', os: ubuntu-22.04,  },
-          { pkgs: 'clang-10  lib32gcc-10-dev libx32gcc-10-dev',         cc: clang-10,  cxx: clang++-10,  x32: 'fail', x86: 'true', cxxtest: 'true',  freestanding: 'false', os: ubuntu-20.04,  },
-          { pkgs: 'clang-9   lib32gcc-10-dev libx32gcc-10-dev',         cc: clang-9,   cxx: clang++-9,   x32: 'fail', x86: 'true', cxxtest: 'true',  freestanding: 'false', os: ubuntu-20.04,  },
-          { pkgs: 'clang-8   lib32gcc-10-dev libx32gcc-10-dev',         cc: clang-8,   cxx: clang++-8,   x32: 'fail', x86: 'true', cxxtest: 'true',  freestanding: 'false', os: ubuntu-20.04,  },
-          { pkgs: 'clang-7   lib32gcc-7-dev  libx32gcc-7-dev',          cc: clang-7,   cxx: clang++-7,   x32: 'fail', x86: 'true', cxxtest: 'true',  freestanding: 'false', os: ubuntu-20.04,  },
-          { pkgs: 'clang-6.0 lib32gcc-10-dev libx32gcc-10-dev',         cc: clang-6.0, cxx: clang++-6.0, x32: 'fail', x86: 'true', cxxtest: 'true',  freestanding: 'false', os: ubuntu-20.04,  },
+          { pkgs: 'clang-10  lib32gcc-10-dev libx32gcc-10-dev',         cc: clang-10,  cxx: clang++-10,  x32: 'false', x86: 'true', cxxtest: 'true',  freestanding: 'false', os: ubuntu-20.04,  },
+          { pkgs: 'clang-9   lib32gcc-10-dev libx32gcc-10-dev',         cc: clang-9,   cxx: clang++-9,   x32: 'false', x86: 'true', cxxtest: 'true',  freestanding: 'false', os: ubuntu-20.04,  },
+          { pkgs: 'clang-8   lib32gcc-10-dev libx32gcc-10-dev',         cc: clang-8,   cxx: clang++-8,   x32: 'false', x86: 'true', cxxtest: 'true',  freestanding: 'false', os: ubuntu-20.04,  },
+          { pkgs: 'clang-7   lib32gcc-7-dev  libx32gcc-7-dev',          cc: clang-7,   cxx: clang++-7,   x32: 'false', x86: 'true', cxxtest: 'true',  freestanding: 'false', os: ubuntu-20.04,  },
+          { pkgs: 'clang-6.0 lib32gcc-10-dev libx32gcc-10-dev',         cc: clang-6.0, cxx: clang++-6.0, x32: 'false', x86: 'true', cxxtest: 'true',  freestanding: 'false', os: ubuntu-20.04,  },
         ]
 
     runs-on: ${{ matrix.os }}
