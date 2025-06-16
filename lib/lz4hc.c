@@ -262,6 +262,30 @@ static void LZ4HC_init_internal (LZ4HC_CCtx_internal* hc4, const BYTE* start)
 /**************************************
 *  Encode
 **************************************/
+#if defined(LZ4_DEBUG) && (LZ4_DEBUG >= 2)
+# define RAWLOG(...) fprintf(stderr, __VA_ARGS__)
+void LZ4HC_hexOut(const void* src, size_t len)
+{
+    const BYTE* p = (const BYTE*)src;
+    size_t n;
+    for (n=0; n<len; n++) {
+        RAWLOG("%02X ", p[n]);
+    }
+    RAWLOG(" \n");
+}
+
+# define HEX_CMP(_lev, _ptr, _ref, _len) \
+    if (LZ4_DEBUG >= _lev) {            \
+        RAWLOG("match bytes: ");        \
+        LZ4HC_hexOut(_ptr, _len);       \
+        RAWLOG("ref bytes: ");          \
+        LZ4HC_hexOut(_ref, _len);       \
+    }
+
+#else
+# define HEX_CMP(l,p,r,_l)
+#endif
+
 /* LZ4HC_encodeSequence() :
  * @return : 0 if ok,
  *           1 if buffer issue detected */
@@ -278,47 +302,49 @@ LZ4_FORCE_INLINE int LZ4HC_encodeSequence (
 #define op      (*_op)
 #define anchor  (*_anchor)
 
-    size_t length;
     BYTE* const token = op++;
 
 #if defined(LZ4_DEBUG) && (LZ4_DEBUG >= 6)
     static const BYTE* start = NULL;
     static U32 totalCost = 0;
-    U32 const pos = (start==NULL) ? 0 : (U32)(anchor - start);
+    U32 const pos = (start==NULL) ? 0 : (U32)(anchor - start); /* only works for single segment */
     U32 const ll = (U32)(ip - anchor);
     U32 const llAdd = (ll>=15) ? ((ll-15) / 255) + 1 : 0;
     U32 const mlAdd = (matchLength>=19) ? ((matchLength-19) / 255) + 1 : 0;
     U32 const cost = 1 + llAdd + ll + 2 + mlAdd;
     if (start==NULL) start = anchor;  /* only works for single segment */
-    /* g_debuglog_enable = (pos >= 2228) & (pos <= 2262); */
     DEBUGLOG(6, "pos:%7u -- literals:%4u, match:%4i, offset:%5i, cost:%4u + %5u",
                 pos,
                 (U32)(ip - anchor), matchLength, offset,
                 cost, totalCost);
+# if 1 /* only works on single segment data */
+    HEX_CMP(7, ip, ip-offset, matchLength);
+# endif
     totalCost += cost;
 #endif
 
     /* Encode Literal length */
-    length = (size_t)(ip - anchor);
-    LZ4_STATIC_ASSERT(notLimited == 0);
-    /* Check output limit */
-    if (limit && ((op + (length / 255) + length + (2 + 1 + LASTLITERALS)) > oend)) {
-        DEBUGLOG(6, "Not enough room to write %i literals (%i bytes remaining)",
-                (int)length, (int)(oend - op));
-        return 1;
-    }
-    if (length >= RUN_MASK) {
-        size_t len = length - RUN_MASK;
-        *token = (RUN_MASK << ML_BITS);
-        for(; len >= 255 ; len -= 255) *op++ = 255;
-        *op++ = (BYTE)len;
-    } else {
-        *token = (BYTE)(length << ML_BITS);
-    }
+    {   size_t litLen = (size_t)(ip - anchor);
+        LZ4_STATIC_ASSERT(notLimited == 0);
+        /* Check output limit */
+        if (limit && ((op + (litLen / 255) + litLen + (2 + 1 + LASTLITERALS)) > oend)) {
+            DEBUGLOG(6, "Not enough room to write %i literals (%i bytes remaining)",
+                    (int)litLen, (int)(oend - op));
+            return 1;
+        }
+        if (litLen >= RUN_MASK) {
+            size_t len = litLen - RUN_MASK;
+            *token = (RUN_MASK << ML_BITS);
+            for(; len >= 255 ; len -= 255) *op++ = 255;
+            *op++ = (BYTE)len;
+        } else {
+            *token = (BYTE)(litLen << ML_BITS);
+        }
 
-    /* Copy Literals */
-    LZ4_wildCopy8(op, anchor, op + length);
-    op += length;
+        /* Copy Literals */
+        LZ4_wildCopy8(op, anchor, op + litLen);
+        op += litLen;
+    }
 
     /* Encode Offset */
     assert(offset <= LZ4_DISTANCE_MAX );
@@ -327,20 +353,20 @@ LZ4_FORCE_INLINE int LZ4HC_encodeSequence (
 
     /* Encode MatchLength */
     assert(matchLength >= MINMATCH);
-    length = (size_t)matchLength - MINMATCH;
-    if (limit && (op + (length / 255) + (1 + LASTLITERALS) > oend)) {
-        DEBUGLOG(6, "Not enough room to write match length");
-        return 1;   /* Check output limit */
-    }
-    if (length >= ML_MASK) {
-        *token += ML_MASK;
-        length -= ML_MASK;
-        for(; length >= 510 ; length -= 510) { *op++ = 255; *op++ = 255; }
-        if (length >= 255) { length -= 255; *op++ = 255; }
-        *op++ = (BYTE)length;
-    } else {
-        *token += (BYTE)(length);
-    }
+    {   size_t mlCode = (size_t)matchLength - MINMATCH;
+        if (limit && (op + (mlCode / 255) + (1 + LASTLITERALS) > oend)) {
+            DEBUGLOG(6, "Not enough room to write match length");
+            return 1;   /* Check output limit */
+        }
+        if (mlCode >= ML_MASK) {
+            *token += ML_MASK;
+            mlCode -= ML_MASK;
+            for(; mlCode >= 510 ; mlCode -= 510) { *op++ = 255; *op++ = 255; }
+            if (mlCode >= 255) { mlCode -= 255; *op++ = 255; }
+            *op++ = (BYTE)mlCode;
+        } else {
+            *token += (BYTE)(mlCode);
+    }   }
 
     /* Prepare next loop */
     ip += matchLength;
@@ -944,6 +970,7 @@ LZ4HC_InsertAndGetWiderMatch (
                         offset = (int)(ipIndex - matchIndex);
                         sBack = back;
                         DEBUGLOG(7, "Found match of len=%i within prefix, offset=%i, back=%i", longest, offset, -back);
+                        HEX_CMP(7, ip + back, ip + back - offset, (size_t)matchLength);
             }   }   }
         } else {   /* lowestMatchIndex <= matchIndex < dictLimit : within Ext Dict */
             const BYTE* const matchPtr = dictStart + (matchIndex - dictIdx);
@@ -963,6 +990,7 @@ LZ4HC_InsertAndGetWiderMatch (
                     offset = (int)(ipIndex - matchIndex);
                     sBack = back;
                     DEBUGLOG(7, "Found match of len=%i within dict, offset=%i, back=%i", longest, offset, -back);
+                    HEX_CMP(7, ip + back, matchPtr + back, (size_t)matchLength);
         }   }   }
 
         if (chainSwap && matchLength==longest) {   /* better match => select a better chain */
@@ -1399,8 +1427,8 @@ LZ4HC_compress_generic_internal (
             const dictCtx_directive dict
             )
 {
-    DEBUGLOG(5, "LZ4HC_compress_generic_internal(src=%p, srcSize=%d)",
-                src, *srcSizePtr);
+    DEBUGLOG(5, "LZ4HC_compress_generic_internal(src=%p, srcSize=%d, dstCapacity=%d)",
+                src, *srcSizePtr, dstCapacity);
 
     /* input sanitization */
     if ((U32)*srcSizePtr > (U32)LZ4_MAX_INPUT_SIZE) return 0;  /* Unsupported input size (too large or negative) */

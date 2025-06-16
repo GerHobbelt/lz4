@@ -152,6 +152,9 @@ usan: LDFLAGS = $(CFLAGS)
 usan: clean
 	CC=$(CC) CFLAGS='$(CFLAGS)' LDFLAGS='$(LDFLAGS)' $(MAKE) test FUZZER_TIME="-T30s" NB_LOOPS=-i1
 
+.PHONY: ubsan
+ubsan: usan
+
 .PHONY: usan32
 usan32: CFLAGS = -m32 -O3 -g -fsanitize=undefined -fno-sanitize-recover=undefined -fsanitize-recover=pointer-overflow
 usan32: LDFLAGS = $(CFLAGS)
