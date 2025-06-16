@@ -53,7 +53,7 @@ USERCFLAGS:= -O3 $(CFLAGS) # -O3 can be overruled by user-provided -Ox level
 CFLAGS    = $(DEBUGFLAGS) $(USERCFLAGS)
 CPPFLAGS += -I$(LIBLZ4DIR) -DXXH_NAMESPACE=LZ4_
 
-include ../Makefile.inc
+include ../build/make/lz4defs.make
 
 OS_VERSION ?= $(UNAME) -r
 ifeq ($(TARGET_OS)$(shell $(OS_VERSION)),SunOS5.10)
@@ -66,7 +66,7 @@ ALLFLAGS  = $(CFLAGS) $(CPPFLAGS) $(LDFLAGS)
 default: lz4-release
 
 C_SRCDIRS = $(LIBLZ4DIR) .
-include ../multiconf.make
+include ../build/make/multiconf.make
 
 # thread detection
 NUM_SYMBOL   := \#
@@ -90,10 +90,10 @@ MD2ROFF_FLAGS = --roff --warnings --manual="User Commands" --organization="lz4 $
 # silent mode by default; verbose can be triggered by V=1 or VERBOSE=1
 $(V)$(VERBOSE).SILENT:
 
-.PHONY:all
+.PHONY: all
 all: lz4 lz4-nomt lz4c unlz4 lz4cat
 
-.PHONY:all32
+.PHONY: all32
 all32: CFLAGS+=-m32
 all32: all
 
