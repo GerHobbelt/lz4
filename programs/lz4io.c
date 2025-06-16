@@ -2870,7 +2870,7 @@ int LZ4IO_displayCompressedFilesInfo(const char** inFileNames, size_t ifnIdx)
         }
         if (g_displayLevel >= 3) {
             /* verbose mode */
-            DISPLAYOUT("%s(%llu/%llu)\n", cfinfo.fileName, (unsigned long long)idx + 1, (unsigned  long long)ifnIdx);
+            DISPLAYOUT("%s(%zu/%zu)\n", cfinfo.fileName, idx + 1, ifnIdx);
             DISPLAYOUT("    %6s %14s %5s %8s %20s %20s %9s\n",
                         "Frame", "Type", "Block", "Checksum", "Compressed", "Uncompressed", "Ratio");
         }
