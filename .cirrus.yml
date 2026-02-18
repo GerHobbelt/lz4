@@ -2,7 +2,7 @@ task:
   name: FreeBSD
   freebsd_instance:
     matrix:
-      image_family: freebsd-14-2
+      image_family: freebsd-15-0-amd64-zfs
   install_script: pkg install -y gmake
   script: |
     cc -v
